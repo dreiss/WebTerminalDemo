@@ -16,9 +16,16 @@ window.onload = function () {
     document.getElementById("change").addEventListener("click", changeSettings);
     document.getElementById("clear").addEventListener("click", clearTerminal);
     document.getElementById("send").addEventListener("click", sendString);
+    document.getElementById("get_signals").addEventListener("click", getSignals);
     document
       .getElementById("term_input")
       .addEventListener("keydown", detectEnter);
+
+    for (let elt of document.querySelectorAll(".setsig")) {
+      elt.addEventListener("click", function() {
+        setSignal(elt.dataset.sig);
+      });
+    }
 
     // Clear the term_window textarea
     clearTerminal();
@@ -166,6 +173,19 @@ async function sendString() {
   // close the writer since we're done sending for now
   writer.close();
   await writableStreamClosed;
+}
+
+async function getSignals() {
+  let signals = await port.getSignals();
+  document.getElementById("get_signals_info").innerText = JSON.stringify(signals);
+}
+
+async function setSignal(sig) {
+  let value = {"+": true, "-": false}[sig[0]];
+  let signal = {"RTS":"requestToSend", "DTR":"dataTerminalReady"}[sig.substring(1)];
+  let arg = {};
+  arg[signal] = value;
+  await port.setSignals(arg);
 }
 
 // Clear the contents of the term_window textarea
